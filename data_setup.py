@@ -66,3 +66,15 @@ def create_dataloaders(
 
   return train_dataloader, test_dataloader, class_names
 
+class ImageFolderWithPaths(datasets.ImageFolder):
+    
+    def __getitem__(self, index):
+        
+        original_tuple = super(ImageFolderWithPaths, self).__getitem__(index)
+        path = self.imgs[index][0]
+        
+        tuple_with_path = (original_tuple + (path,))
+        print(tuple_with_path)
+        return tuple_with_path
+    
+    

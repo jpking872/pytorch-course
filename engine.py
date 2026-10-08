@@ -9,7 +9,7 @@ Created on Tue Sep 29 09:56:09 2026
 Contains functions for training and testing a PyTorch model.
 """
 import torch
-
+import pandas as pd
 from typing import Dict, List, Tuple
 
 def train_step(model: torch.nn.Module, 
@@ -121,6 +121,65 @@ def test_step(model: torch.nn.Module,
   test_loss = test_loss / len(dataloader)
   test_acc = test_acc / len(dataloader)
   return test_loss, test_acc
+
+def test_step_with_sample(model: torch.nn.Module, 
+              dataloader: torch.utils.data.DataLoader, 
+              loss_fn: torch.nn.Module,
+              device: torch.device) -> Tuple[float, float]:
+  """Tests a PyTorch model for a single epoch.
+
+  Turns a target PyTorch model to "eval" mode and then performs
+  a forward pass on a testing dataset.
+
+  Args:
+    model: A PyTorch model to be tested.
+    dataloader: A DataLoader instance for the model to be tested on.
+    loss_fn: A PyTorch loss function to calculate loss on the test data.
+    device: A target device to compute on (e.g. "cuda" or "cpu").
+
+  Returns:
+    A tuple of testing loss and testing accuracy metrics.
+    In the form (test_loss, test_accuracy). For example:
+
+    (0.0223, 0.8985)
+  """
+  
+  test_results = pd.DataFrame()
+  
+  # Put model in eval mode
+  model.eval() 
+
+  # Setup test loss and test accuracy values
+  test_loss, test_acc = 0, 0
+
+  # Turn on inference context manager
+  with torch.inference_mode():
+      # Loop through DataLoader batches
+      for batch, (X, y, path) in enumerate(dataloader):
+          # Send data to target device
+          X, y = X.to(device), y.to(device)
+
+          # 1. Forward pass
+          test_pred_logits = model(X)
+          test_pred_probs = torch.softmax(test_pred_logits, dim=1)
+          test_pred_labels = test_pred_probs.argmax(dim=1)
+          
+          row = pd.DataFrame([{ "path" : path, "prob": test_pred_probs.max().item(), "pred": test_pred_labels.item(), "label": y.item() }])
+          
+          test_results = pd.concat([test_results, row], ignore_index=True)
+          
+          # 2. Calculate and accumulate loss
+          loss = loss_fn(test_pred_logits, y)
+          test_loss += loss.item()
+
+          # Calculate and accumulate accuracy
+          test_pred_labels = test_pred_logits.argmax(dim=1)
+          test_acc += ((test_pred_labels == y).sum().item()/len(test_pred_labels))
+
+  # Adjust metrics to get average loss and accuracy per batch 
+  test_loss = test_loss / len(dataloader)
+  test_acc = test_acc / len(dataloader)
+  return test_loss, test_acc, test_results
 
 def train(model: torch.nn.Module, 
           train_dataloader: torch.utils.data.DataLoader, 

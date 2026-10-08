@@ -9,7 +9,6 @@ Created on Tue Sep 29 09:58:45 2026
 Trains a PyTorch image classification model using device-agnostic code.
 """
 
-import os
 import torch
 import data_setup, engine, model, utils
 import argparse

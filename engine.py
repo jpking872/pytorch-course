@@ -257,7 +257,7 @@ def train(model: torch.nn.Module,
       results["test_loss"].append(test_loss)
       results["test_acc"].append(test_acc)
       
-      '''writer.add_scalars(main_tag="Loss", 
+      writer.add_scalars(main_tag="Loss", 
                           tag_scalar_dict={"train_loss": train_loss,
                                            "test_loss": test_loss},
                           global_step=epoch)
@@ -271,7 +271,7 @@ def train(model: torch.nn.Module,
        # Track the PyTorch model architecture
       writer.add_graph(model=model, 
                         # Pass in an example input
-                        input_to_model=torch.randn(32, 3, 224, 224).to(device))'''
+                        input_to_model=torch.randn(32, 3, 224, 224).to(device))
 
   # Return the filled results at the end of the epochs
   return results

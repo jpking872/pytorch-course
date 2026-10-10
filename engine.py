@@ -264,8 +264,8 @@ def train(model: torch.nn.Module,
 
        # Add accuracy results to SummaryWriter
       writer.add_scalars(main_tag="Loss", 
-                          tag_scalar_dict={"train_loss": train_loss,
-                                           "test_loss": test_loss},
+                          tag_scalar_dict={"train_acc": train_acc,
+                                           "test_acc": test_acc},
                           global_step=epoch)
        
        # Track the PyTorch model architecture
